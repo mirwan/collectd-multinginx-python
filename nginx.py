@@ -15,7 +15,7 @@ class Nginx(object):
 
     def do_nginx_status(self):
         for instance, url_data in self.urls.items():
-            (url, user, pswd) = url_data
+            (url, host, user, pswd) = url_data
             try:
 		request = urllib2.Request(url)
 		base64string = base64.encodestring('%s:%s' % (user, pswd)).replace('\n', '')
@@ -30,7 +30,9 @@ class Nginx(object):
                 m = self.pattern.findall(data)
                 for key, value in m:
                     metric = collectd.Values()
-                    metric.plugin = 'nginx-%s' % instance
+                    metric.host = host
+                    metric.plugin = 'nginx'
+                    metric.plugin_instance = '%s' % instance
                     metric.type_instance = key.lower()
                     metric.type = 'nginx_connections'
                     metric.values = [value]
@@ -39,7 +41,9 @@ class Nginx(object):
                 requests = data.split('\n')[2].split()[-1]
                 collectd.debug('Requests %s' % requests)
                 metric = collectd.Values()
-                metric.plugin = 'nginx-%s' % instance
+                metric.host = host
+                metric.plugin = 'nginx'
+                metric.plugin_instance = '%s' % instance
                 metric.type = 'nginx_requests'
                 metric.values = [requests]
                 metric.dispatch()
