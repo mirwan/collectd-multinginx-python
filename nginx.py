@@ -14,7 +14,8 @@ class Nginx(object):
         self.urls = {}
 
     def do_nginx_status(self):
-        for instance, (url, user, pswd) in self.urls.items():
+        for instance, url_data in self.urls.items():
+            (url, user, pswd) = url_data
             try:
 		request = urllib2.Request(url)
 		base64string = base64.encodestring('%s:%s' % (user, pswd)).replace('\n', '')
