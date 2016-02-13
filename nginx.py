@@ -3,6 +3,7 @@
 
 import re
 import urllib2
+import base64
 
 import collectd
 
@@ -13,9 +14,12 @@ class Nginx(object):
         self.urls = {}
 
     def do_nginx_status(self):
-        for instance, url in self.urls.items():
+        for instance, (url, user, pswd) in self.urls.items():
             try:
-                response = urllib2.urlopen(url)
+		request = urllib2.Request(url)
+		base64string = base64.encodestring('%s:%s' % (user, pswd)).replace('\n', '')
+		request.add_header("Authorization", "Basic %s" % base64string)
+                response = urllib2.urlopen(request)
             except urllib2.HTTPError, e:
                 collectd.error(str(e))
             except urllib2.URLError, e:
@@ -40,7 +44,7 @@ class Nginx(object):
                 metric.dispatch()
 
     def config(self, obj):
-        self.urls = dict((node.key, node.values[0]) for node in obj.children)
+        self.urls = dict((node.key, node.values) for node in obj.children)
 
 
 nginx = Nginx()
